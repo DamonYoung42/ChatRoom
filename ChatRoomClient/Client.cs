@@ -2,86 +2,85 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Net.Sockets;
 using System.Net;
+using System.IO;
+using Chat = System.Net;
+
+
 
 
 namespace ChatRoomClient
 {
     class Client
     {
+
+        TcpClient clientStream = new TcpClient();
+        NetworkStream serverStream = default(NetworkStream);
+
+        private void GetMessage()
+        {
+            while (true)
+            {
+                byte[] inStream = new byte[4096];
+                serverStream.Read(inStream, 0, inStream.Length);
+                string message = Encoding.ASCII.GetString(inStream);
+                message = message.Substring(0, message.IndexOf("\0"));
+                Console.WriteLine(message);
+            }
+
+        }
+
         public void RunClient()
         {
             try
             {
+                clientStream.Connect("localhost", 10000);
+                Console.WriteLine("Connected to Chat Server ...");
+                Console.WriteLine("What is your name?");
+                string userName = Console.ReadLine();
+                byte[] outStream = System.Text.Encoding.ASCII.GetBytes(userName);
+                serverStream = clientStream.GetStream();
+                serverStream.Write(outStream, 0, outStream.Length);
+                serverStream.Flush();
 
-                TcpClient client = new TcpClient("localhost", 1000);
-                Console.WriteLine("You are connected to the message server.");
+                while (clientStream.Connected)
+                {
+                    Thread receiveMessage = new Thread(GetMessage);
+                    receiveMessage.Start();
+                    serverStream = clientStream.GetStream();
+                    string message = Console.ReadLine();
 
-                NetworkStream networkStream = client.GetStream();
+                    byte[] outMessage = Encoding.Default.GetBytes(message);
+                    serverStream.Write(outMessage, 0, outMessage.Length);
+                    serverStream.Flush();
 
-                byte[] message = new byte[1024];
+                    if (message.ToLower() == "exit")
+                    {
+                        Environment.Exit(0);
+                    }
 
-                int messageLength = networkStream.Read(message, 0, message.Length);
 
-                Console.WriteLine(Encoding.ASCII.GetString(message, 0, messageLength));
-
-                client.Close();
-
+                }
             }
-
             catch (Exception error)
             {
-                Console.WriteLine(error.ToString());
+                Console.WriteLine(error);
+
             }
-            //TcpClient server;
-            //bool connected = true;
-            //try
-            //{
-            //    server = new TcpClient("localhost", 1000);
-            //    Console.WriteLine("Connected to chat server");
-            //}
-            //catch
-            //{
-            //    Console.WriteLine("Could not connect to chat server");
-            //    return;
-            //}
-
-            //NetworkStream networkStream = server.GetStream();
-            //StreamReader streamreader = new StreamReader(networkStream);
-            //StreamWriter streamwriter = new StreamWriter(networkStream);
-
-            //try
-            //{
-            //    string clientMessage = "";
-            //    string serverMessage = "";
-            //    while (connected)
-            //    {
-            //        Console.Write("Client:");
-            //        clientMessage = Console.ReadLine();
-            //        if (clientMessage.ToLower() == "goodbye")
-            //        {
-            //            connected = false;
-            //            streamwriter.WriteLine("goodbye");
-            //            streamwriter.Flush();
-            //        }
-            //        else 
-            //        {
-            //            streamwriter.WriteLine(clientMessage);
-            //            streamwriter.Flush();
-            //            serverMessage = streamreader.ReadLine();
-            //            Console.WriteLine("Server:" + serverMessage);
-            //        }
-            //    }
-            //}
-            //catch
-            //{
-            //    Console.WriteLine("Could not read message from server.");
-            //}
-            //streamreader.Close();
-            //networkStream.Close();
-            //streamwriter.Close();
+            finally
+            {
+                if (clientStream != null)
+                {
+                    clientStream.Close();
+                }
+            }
         }
+
+
+
+
     }
 }
+

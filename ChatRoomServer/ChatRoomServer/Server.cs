@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Net;
 using System.Net.Sockets;
 using System.IO;
@@ -10,72 +11,84 @@ using System.IO;
 
 namespace ChatRoomServer
 {
-    class Server
+    public class Server
     {
+        public static Dictionary<string, TcpClient> chatUsers = new Dictionary<string, TcpClient>();
+        public static Queue<string> messageQueue = new Queue<string>();
 
         public void RunServer()
         {
-            bool waiting = true;
+            try
+            {     
+                TcpListener serverSocket = new TcpListener(IPAddress.Any, 10000);
+                TcpClient clientSocket = default(TcpClient);
 
-            TcpListener tcpListener = new TcpListener(IPAddress.Any, 1000);
+                serverSocket.Start();
+                Console.WriteLine("Chat Server Started ....");
 
-            tcpListener.Start();
+                while (true)
+                {
+                    clientSocket = serverSocket.AcceptTcpClient();
 
-            while (waiting)
-            {
-                Console.WriteLine("Awaiting connection ...");
-                TcpClient client = tcpListener.AcceptTcpClient();
+                    byte[] bytesFrom = new byte[4096];
+                    byte[] bytesSent = new byte[4096];
+                    string dataFromClient = null;
+                    NetworkStream networkStream = clientSocket.GetStream();
+                   
+                    networkStream.Read(bytesFrom, 0, bytesFrom.Length);
+                    dataFromClient = Encoding.ASCII.GetString(bytesFrom);
+                    dataFromClient = dataFromClient.Substring(0, dataFromClient.IndexOf("\0"));
 
-                Console.WriteLine("Connection made.");
-                NetworkStream networkStream = client.GetStream();
+                    Console.WriteLine(dataFromClient + " joined the chat room. ");
+                    bytesSent = Encoding.ASCII.GetBytes("Welcome, " + dataFromClient);
+                    networkStream.Write(bytesSent, 0, bytesSent.Length);
+                    Broadcast(dataFromClient + " joined the chat room.");
 
-
+                    chatUsers.Add(dataFromClient, clientSocket);
+                    
+                    MonitorClient client = new MonitorClient();
+                    client.startClient(clientSocket, dataFromClient, chatUsers);
+                }
             }
-            //try
-            //{
-            //    bool waiting = true;
-            //    string serverMessage = "";
-            //    string clientMessage = "";
-            //    TcpListener tcpListener = new TcpListener(IPAddress.Parse("127.0.0.1"), 1000);
-            //    tcpListener.Start();
-            //    Console.WriteLine("Server Started");
-            //    Socket client = tcpListener.AcceptSocket();
-            //    Console.WriteLine("Client Connected");
-            //    NetworkStream networkStream = new NetworkStream(client);
-            //    StreamWriter streamwriter = new StreamWriter(networkStream);
-            //    StreamReader streamreader = new StreamReader(networkStream);
-            //    while (waiting)
-            //    {
-            //        if (client.Connected)
-            //        {
-            //            clientMessage = streamreader.ReadLine();
-            //            Console.WriteLine("Client:" + clientMessage);
-            //            if ((clientMessage.ToLower() == "goodbye"))
-            //            {
-            //                waiting = false;
-            //                streamreader.Close();
-            //                streamwriter.Close();
-            //                networkStream.Close();
-            //                return;
-            //            }
-            //            Console.Write("Server:");
-            //            serverMessage = Console.ReadLine();
-            //            streamwriter.WriteLine(serverMessage);
-            //            streamwriter.Flush();
-            //        }
-            //    }
-            //    streamreader.Close();
-            //    networkStream.Close();
-            //    streamwriter.Close();
-            //    client.Close();
-            //    Console.WriteLine("Shutting down.");
+            catch (Exception error)
+            {
+                Console.WriteLine(error);
+            }
+            finally
+            {
+                Console.WriteLine("exit");
+                Console.ReadLine();
+            }
 
-            //}
-            //catch (Exception error)
-            //{
-            //    Console.WriteLine(error.ToString());
-            //}
+        }
+
+        public static void Broadcast(string message)
+        {
+            try
+            {
+                //while (messageQueue.Count > 0)
+                //{
+                    //byte[] bytesOut = System.Text.Encoding.ASCII.GetBytes(messageQueue.Dequeue());
+                    foreach (KeyValuePair<string, TcpClient> user in chatUsers)
+                    {
+                    byte[] bytesOut = null;
+                    bytesOut = System.Text.Encoding.ASCII.GetBytes(message);
+                    NetworkStream broadcast = user.Value.GetStream();
+                    broadcast.Write(bytesOut, 0, bytesOut.Length);
+                    broadcast.Flush();
+                    
+                }
+                //}
+            }
+            catch (Exception error)
+            {
+                Console.WriteLine(error);
+            }
+
         }
     }
+
+
+
 }
 

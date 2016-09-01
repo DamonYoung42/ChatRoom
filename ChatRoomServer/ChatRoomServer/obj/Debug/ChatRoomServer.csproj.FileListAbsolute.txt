@@ -1,1 +1,6 @@
 C:\Users\usf00_000\Documents\DevCodeCamp\Projects\ChatRoom\ChatRoomServer\ChatRoomServer\bin\Debug\ChatRoomServer.exe.config
+C:\Users\usf00_000\Documents\DevCodeCamp\Projects\ChatRoom\ChatRoomServer\ChatRoomServer\bin\Debug\ChatRoomServer.exe
+C:\Users\usf00_000\Documents\DevCodeCamp\Projects\ChatRoom\ChatRoomServer\ChatRoomServer\bin\Debug\ChatRoomServer.pdb
+C:\Users\usf00_000\Documents\DevCodeCamp\Projects\ChatRoom\ChatRoomServer\ChatRoomServer\obj\Debug\ChatRoomServer.csprojResolveAssemblyReference.cache
+C:\Users\usf00_000\Documents\DevCodeCamp\Projects\ChatRoom\ChatRoomServer\ChatRoomServer\obj\Debug\ChatRoomServer.exe
+C:\Users\usf00_000\Documents\DevCodeCamp\Projects\ChatRoom\ChatRoomServer\ChatRoomServer\obj\Debug\ChatRoomServer.pdb
