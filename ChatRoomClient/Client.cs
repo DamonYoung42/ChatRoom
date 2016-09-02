@@ -19,18 +19,7 @@ namespace ChatRoomClient
         TcpClient clientStream = new TcpClient();
         NetworkStream serverStream = default(NetworkStream);
 
-        private void GetMessage()
-        {
-            while (true)
-            {
-                byte[] inStream = new byte[4096];
-                serverStream.Read(inStream, 0, inStream.Length);
-                string message = Encoding.ASCII.GetString(inStream);
-                message = message.Substring(0, message.IndexOf("\0"));
-                Console.WriteLine(message);
-            }
 
-        }
 
         public void RunClient()
         {
@@ -79,7 +68,18 @@ namespace ChatRoomClient
         }
 
 
+        private void GetMessage()
+        {
+            while (true)
+            {
+                byte[] bytesFrom = new byte[4096];
+                serverStream.Read(bytesFrom, 0, bytesFrom.Length);
+                string message = Encoding.ASCII.GetString(bytesFrom);
+                message = message.Substring(0, message.IndexOf("\0"));
+                Console.WriteLine(message);
+            }
 
+        }
 
     }
 }

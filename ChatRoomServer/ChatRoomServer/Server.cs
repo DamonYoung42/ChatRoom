@@ -6,18 +6,19 @@ using System.Text;
 using System.Threading;
 using System.Net;
 using System.Net.Sockets;
-using System.IO;
 
 
 namespace ChatRoomServer
 {
     public class Server
     {
+        public static BinaryTree userTree = new BinaryTree();
         public static Dictionary<string, TcpClient> chatUsers = new Dictionary<string, TcpClient>();
         public static Queue<string> messageQueue = new Queue<string>();
 
         public void RunServer()
         {
+            
             try
             {     
                 TcpListener serverSocket = new TcpListener(IPAddress.Any, 10000);
@@ -32,22 +33,23 @@ namespace ChatRoomServer
 
                     byte[] bytesFrom = new byte[4096];
                     byte[] bytesSent = new byte[4096];
-                    string dataFromClient = null;
+                    string userInput = null;
                     NetworkStream networkStream = clientSocket.GetStream();
                    
                     networkStream.Read(bytesFrom, 0, bytesFrom.Length);
-                    dataFromClient = Encoding.ASCII.GetString(bytesFrom);
-                    dataFromClient = dataFromClient.Substring(0, dataFromClient.IndexOf("\0"));
+                    userInput = Encoding.ASCII.GetString(bytesFrom);
+                    userInput = userInput.Substring(0, userInput.IndexOf("\0"));
 
-                    Console.WriteLine(dataFromClient + " joined the chat room. ");
-                    bytesSent = Encoding.ASCII.GetBytes("Welcome, " + dataFromClient);
+                    Console.WriteLine(userInput + " joined the chat room. ");
+                    bytesSent = Encoding.ASCII.GetBytes("Welcome, " + userInput);
                     networkStream.Write(bytesSent, 0, bytesSent.Length);
-                    Broadcast(dataFromClient + " joined the chat room.");
+                    Broadcast(userInput + " joined the chat room.");
 
-                    chatUsers.Add(dataFromClient, clientSocket);
+                    userTree.Insert(userInput, clientSocket);
+                    chatUsers.Add(userInput, clientSocket);
                     
                     MonitorClient client = new MonitorClient();
-                    client.startClient(clientSocket, dataFromClient, chatUsers);
+                    client.startClient(clientSocket, userInput, chatUsers);
                 }
             }
             catch (Exception error)

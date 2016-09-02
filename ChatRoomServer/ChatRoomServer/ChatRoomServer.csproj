@@ -43,8 +43,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BinaryTree.cs" />
     <Compile Include="MonitorClient.cs" />
     <Compile Include="IParticipant.cs" />
+    <Compile Include="Node.cs" />
     <Compile Include="Participant.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
