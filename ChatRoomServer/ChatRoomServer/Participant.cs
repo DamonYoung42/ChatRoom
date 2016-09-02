@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ChatRoomServer
 {
-    class Participant : IParticipant
+    class Participant
     {
         string name;
         //int port;

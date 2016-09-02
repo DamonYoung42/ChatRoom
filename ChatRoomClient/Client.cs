@@ -19,29 +19,28 @@ namespace ChatRoomClient
         TcpClient clientStream = new TcpClient();
         NetworkStream serverStream = default(NetworkStream);
 
-
-
         public void RunClient()
         {
             try
             {
+                //Console.WriteLine("Please enter your name before connecting to the Chat Server.");
+                //string userName = Console.ReadLine();
+
                 clientStream.Connect("localhost", 10000);
-                Console.WriteLine("Connected to Chat Server ...");
-                Console.WriteLine("What is your name?");
-                string userName = Console.ReadLine();
-                byte[] outStream = System.Text.Encoding.ASCII.GetBytes(userName);
-                serverStream = clientStream.GetStream();
-                serverStream.Write(outStream, 0, outStream.Length);
-                serverStream.Flush();
+                //Console.WriteLine("Connected to Chat Server ...");
+                //byte[] outStream = System.Text.Encoding.ASCII.GetBytes(userName);
+                //serverStream = clientStream.GetStream();
+                //serverStream.Write(outStream, 0, outStream.Length);
+                //serverStream.Flush();
 
                 while (clientStream.Connected)
                 {
-                    Thread receiveMessage = new Thread(GetMessage);
+                    Thread receiveMessage = new Thread(ReceiveMessage);
                     receiveMessage.Start();
                     serverStream = clientStream.GetStream();
                     string message = Console.ReadLine();
 
-                    byte[] outMessage = Encoding.Default.GetBytes(message);
+                    byte[] outMessage = Encoding.ASCII.GetBytes(message);
                     serverStream.Write(outMessage, 0, outMessage.Length);
                     serverStream.Flush();
 
@@ -53,9 +52,12 @@ namespace ChatRoomClient
 
                 }
             }
-            catch (Exception error)
+            catch (Exception)
             {
-                Console.WriteLine(error);
+                Console.WriteLine("You are currently unable to establish a connection to the server.");
+                Console.WriteLine("Please exit and restart client after confirming your chat server is running.");
+                Console.ReadLine();
+
 
             }
             finally
@@ -68,7 +70,7 @@ namespace ChatRoomClient
         }
 
 
-        private void GetMessage()
+        private void ReceiveMessage()
         {
             while (true)
             {

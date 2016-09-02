@@ -4,23 +4,44 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Net.Sockets;
+using System.Collections;
 
 namespace ChatRoomServer
 {
-    public class Node
+    public class Node : IEnumerable
     {
-            public string name;
-            public TcpClient tcpClient;
-            public Node left;
-            public Node right;
+        public string name;
+        public TcpClient tcpClient;
+        public Node left;
+        public Node right;
 
-            // Constructor  to create a single node 
-            public Node(string name, TcpClient client)
+        public Node(string name, TcpClient client)
+        {
+            this.name = name;
+            tcpClient = client;
+            this.left = null;
+            this.right = null;
+        }
+
+        public IEnumerator GetEnumerator()
+        {
+            if (left != null)
             {
-                this.name = name;
-                tcpClient = client;
-                this.left = null;
-                this.right = null;
-            } 
+                foreach (var node in left)
+                {
+                    yield return node;
+                }
+            }
+
+            if (right != null)
+            {
+                foreach (var node in right)
+                {
+                    yield return node;
+                }
+            }
+            
+        }
     }
+
 }

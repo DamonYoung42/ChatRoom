@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Net;
 using System.Net.Sockets;
+using System.IO;
 
 namespace ChatRoomServer
 {
@@ -13,13 +14,12 @@ namespace ChatRoomServer
     {
         TcpClient clientSocket;
         string userName;
-        Dictionary<string, TcpClient> clientsList;
 
-        public void startClient(TcpClient ClientSocket, string userName, Dictionary<string, TcpClient> cList)
+        public void startClient(TcpClient ClientSocket, string userName)
         {
             this.clientSocket = ClientSocket;
             this.userName = userName;
-            this.clientsList = cList;
+            
             Thread clientThread = new Thread(Communicate);
             clientThread.Start();
         }
@@ -32,28 +32,28 @@ namespace ChatRoomServer
                 while (true)
                 {
                     byte[] bytesFrom = new byte[4096];
-                    string dataFromClient = null;
+                    string userInput = null;
                     NetworkStream networkStream = clientSocket.GetStream();
                     networkStream.Read(bytesFrom, 0, bytesFrom.Length);
 
-                    dataFromClient = Encoding.ASCII.GetString(bytesFrom);
+                    userInput = Encoding.ASCII.GetString(bytesFrom);
 
-                    dataFromClient = dataFromClient.Substring(0, dataFromClient.IndexOf("\0"));
+                    userInput = userInput.Substring(0, userInput.IndexOf("\0"));                               
 
-                    
-
-                    if (dataFromClient.ToLower() == "exit")
+                    if (userInput.ToLower() == "exit")
                     {
-                        dataFromClient = userName + " has left the chat room.";
+                        userInput = userName + " has left the chat room.";
+                        Server.userTree.Delete(this.userName);
                         Server.chatUsers.Remove(this.userName);
                     }
+                    else
                     {
-                        dataFromClient = "<" + this.userName + ">" + dataFromClient;
+                        userInput = "<" + this.userName + ">" + userInput;
                     }
 
-                    Console.WriteLine(dataFromClient);
-
-                    Server.Broadcast(dataFromClient);
+                    Console.WriteLine(userInput);
+                    Server.messageQueue.Enqueue(userInput);
+                    Server.Broadcast(this.userName, userInput);
                    
                 }
 
@@ -64,5 +64,7 @@ namespace ChatRoomServer
                 Console.WriteLine(error);
             }
         }
+
+        
     }
 }

@@ -5,28 +5,12 @@ using System.Text;
 using System.Threading;
 using System.Net.Sockets;
 using System.Net;
+using System.Collections;
 
 namespace ChatRoomServer
 {
-    public class BinaryTree
+    public class BinaryTree : IEnumerable
     {
-        // Implements:
-
-        // count()
-        // clear()
-        // insert()
-        // delete()
-        // findSymbol()
-        //
-        // Usage:
-        //
-        //  TBinarySTree bt = new TBinarySTree();
-        //  bt.insert ("Bill", "3.14");
-        //  bt.insert ("John". 2.71");
-        //  etc.
-        //  node = bt.findSymbol ("Bill");
-        //  WriteLine ("Node value = {0}\n", node.value);
-        //
 
         private Node top;
         private int _count = 0;
@@ -58,7 +42,7 @@ namespace ChatRoomServer
             _count = 0;
         }
 
-        public int count()
+        public int Count()
         {
             return _count;
         }
@@ -112,7 +96,7 @@ namespace ChatRoomServer
                     top = nodeToAdd;
                 else
                     Add(nodeToAdd, ref top);
-                _count++;
+                    _count++;
                 return nodeToAdd;
             }
             catch (Exception)
@@ -145,14 +129,6 @@ namespace ChatRoomServer
             return null;
         }
 
-        /// <summary>
-        /// Find the next ordinal node starting at node startNode.
-        /// Due to the structure of a binary search tree, the
-        /// successor node is simply the left most node on the right branch.
-        /// </summary>
-        /// <param name="startNode">Name key to use for searching</param>
-        /// <param name="parent">Returns the parent node if search successful</param>
-        /// <returns>Returns a reference to the node if successful, else null</returns>
         public Node LocateSuccessor(Node startNode, ref Node parent)
         {
             parent = startNode;
@@ -166,18 +142,6 @@ namespace ChatRoomServer
             return startNode;
         }
 
-        /// <summary>
-        /// Delete a given node. This is the more complex method in the binary search
-        /// class. The method considers three senarios, 1) the deleted node has no
-        /// children; 2) the deleted node as one child; 3) the deleted node has two
-        /// children. Case one and two are relatively simple to handle, the only
-        /// unusual considerations are when the node is the root node. Case 3) is
-        /// much more complicated. It requires the location of the successor node.
-        /// The node to be deleted is then replaced by the sucessor node and the
-        /// successor node itself deleted. Throws an exception if the method fails
-        /// to locate the node for deletion.
-        /// </summary>
-        /// <param name="key">Name key of node to delete</param>
         public void Delete(string key)
         {
             Node parent = null;
@@ -267,5 +231,10 @@ namespace ChatRoomServer
             nodeToDelete.tcpClient = successorCopy.tcpClient;
             _count--;
         }
+        public IEnumerator GetEnumerator()
+        {
+            return top.GetEnumerator();
+        }
+
     }
 }
