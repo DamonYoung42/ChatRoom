@@ -72,15 +72,23 @@ namespace ChatRoomClient
 
         private void ReceiveMessage()
         {
-            while (true)
-            {
-                byte[] bytesFrom = new byte[4096];
-                serverStream.Read(bytesFrom, 0, bytesFrom.Length);
-                string message = Encoding.ASCII.GetString(bytesFrom);
-                message = message.Substring(0, message.IndexOf("\0"));
-                Console.WriteLine(message);
-            }
 
+            try
+            {
+                while (true)
+                {
+                    byte[] bytesFrom = new byte[4096];
+                    serverStream.Read(bytesFrom, 0, bytesFrom.Length);
+                    string message = Encoding.ASCII.GetString(bytesFrom);
+                    message = message.Substring(0, message.IndexOf("\0"));
+                    Console.WriteLine(message);
+                }
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("A problem with your connection to the server has been detected. You must restart the client application.");
+                
+            }       
         }
 
     }

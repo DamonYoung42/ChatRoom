@@ -32,6 +32,7 @@ namespace ChatRoomServer
                     yield return node;
                 }
             }
+            yield return this;
 
             if (right != null)
             {

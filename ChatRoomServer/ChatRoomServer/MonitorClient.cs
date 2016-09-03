@@ -29,7 +29,7 @@ namespace ChatRoomServer
 
             try
             {
-                while (true)
+                while (clientSocket.Connected)
                 {
                     byte[] bytesFrom = new byte[4096];
                     string userInput = null;
@@ -45,16 +45,19 @@ namespace ChatRoomServer
                         userInput = userName + " has left the chat room.";
                         Server.userTree.Delete(this.userName);
                         Server.chatUsers.Remove(this.userName);
+                        Console.WriteLine(userInput);
+                        Server.messageQueue.Enqueue(userInput);
+                        Server.Broadcast(this.userName, userInput);
+                        break;
                     }
                     else
                     {
                         userInput = "<" + this.userName + ">" + userInput;
+                        Console.WriteLine(userInput);
+                        Server.messageQueue.Enqueue(userInput);
+                        Server.Broadcast(this.userName, userInput);
                     }
-
-                    Console.WriteLine(userInput);
-                    Server.messageQueue.Enqueue(userInput);
-                    Server.Broadcast(this.userName, userInput);
-                   
+                
                 }
 
             }

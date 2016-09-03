@@ -22,26 +22,6 @@ namespace ChatRoomServer
         }
 
 
-        // Recursive destruction of binary search tree, called by method clear
-        // and destroy. Can be used to kill a sub-tree of a larger tree.
-        // This is a hanger on from its Delphi origins, it might be dispensable
-        // given the garbage collection abilities of .NET
-        private void killTree(ref Node key)
-        {
-            if (key != null)
-            {
-                killTree(ref key.left);
-                killTree(ref key.right);
-                key = null;
-            }
-        }
-
-        public void Clear()
-        {
-            killTree(ref top);
-            _count = 0;
-        }
-
         public int Count()
         {
             return _count;
@@ -53,12 +33,12 @@ namespace ChatRoomServer
             while (searchNode != null)
             {
                 if (String.Compare(name, searchNode.name) == 0)
-                    return searchNode;
+                { return searchNode; }
 
                 if (String.Compare(name, searchNode.name) < 0)
-                    searchNode = searchNode.left;
+                { searchNode = searchNode.left; }
                 else
-                    searchNode = searchNode.right;
+                { searchNode = searchNode.right; }
             }
             return null;
         }
@@ -70,11 +50,8 @@ namespace ChatRoomServer
                 tree = node;
             else
             {
-                // If we find a node with the same name then it's 
-                // a duplicate and we can't continue
-                //int comparison = String.Compare(node.name, tree.name);
-                //if (comparison == 0)
-                //    throw new Exception();
+                if (String.Compare(node.name, tree.name) == 0)
+                    throw new Exception();
 
                 if (String.Compare(node.name, tree.name) < 0)
                 {
@@ -89,20 +66,21 @@ namespace ChatRoomServer
 
         public Node Insert(string name, TcpClient client)
         {
-            Node nodeToAdd = new Node(name, client);
-            try
+            Node nodeToAdd = new Node(name, client);       
+            
+            if (top == null)
             {
-                if (top == null)
-                    top = nodeToAdd;
-                else
-                    Add(nodeToAdd, ref top);
-                    _count++;
-                return nodeToAdd;
+                top = nodeToAdd;
             }
-            catch (Exception)
+
+            else
             {
-                return null;
+                Add(nodeToAdd, ref top);
             }
+
+            _count++;
+            return nodeToAdd;
+            
         }
 
         private Node LocateParent(string name, ref Node parent)
@@ -129,10 +107,9 @@ namespace ChatRoomServer
             return null;
         }
 
-        public Node LocateSuccessor(Node startNode, ref Node parent)
+        public Node LocateChild(Node startNode, ref Node parent)
         {
             parent = startNode;
-            // Look for the left-most node on the right side
             startNode = startNode.right;
             while (startNode.left != null)
             {
@@ -145,14 +122,12 @@ namespace ChatRoomServer
         public void Delete(string key)
         {
             Node parent = null;
-            // First find the node to delete and its parent
+            // find the key and parent
             Node nodeToDelete = LocateParent(key, ref parent);
             if (nodeToDelete == null)
-                throw new Exception("Unable to delete node: " + key.ToString());  // can't find node, then say so 
+                throw new Exception("Unable to delete node: " + key.ToString());  
 
-            // Three cases to consider, leaf, one child, two children
-
-            // If it is a simple leaf then just null what the parent is pointing to
+            // no children
             if ((nodeToDelete.left == null) && (nodeToDelete.right == null))
             {
                 if (parent == null)
@@ -161,8 +136,6 @@ namespace ChatRoomServer
                     return;
                 }
 
-                // find out whether left or right is associated 
-                // with the parent and null as appropriate
                 if (parent.left == nodeToDelete)
                     parent.left = null;
                 else
@@ -171,64 +144,66 @@ namespace ChatRoomServer
                 return;
             }
 
-            // One of the children is null, in this case
-            // delete the node and move child up
+            //check right side, move child node up
             if (nodeToDelete.left == null)
             {
-                // Special case if we're at the root
+                // if at top
                 if (parent == null)
                 {
                     top = nodeToDelete.right;
                     return;
                 }
 
-                // Identify the child and point the parent at the child
+                //parent gets new child
                 if (parent.left == nodeToDelete)
                     parent.right = nodeToDelete.right;
                 else
                     parent.left = nodeToDelete.right;
-                nodeToDelete = null; // Clean up the deleted node
+                nodeToDelete = null;
                 _count--;
                 return;
             }
 
-            // One of the children is null, in this case
-            // delete the node and move child up
+            //check left side, move child up
             if (nodeToDelete.right == null)
             {
-                // Special case if we're at the root			
+                //at top			
                 if (parent == null)
                 {
                     top = nodeToDelete.left;
                     return;
                 }
 
-                // Identify the child and point the parent at the child
+                // parent gets new child
                 if (parent.left == nodeToDelete)
+                {
                     parent.left = nodeToDelete.left;
+                }
+
                 else
+                {
                     parent.right = nodeToDelete.left;
-                nodeToDelete = null; // Clean up the deleted node
+                }
+
+                nodeToDelete = null;
                 _count--;
                 return;
             }
 
-            // Both children have nodes, therefore find the successor, 
-            // replace deleted node with successor and remove successor
-            // The parent argument becomes the parent of the successor
-            Node successor = LocateSuccessor(nodeToDelete, ref parent);
-            // Make a copy of the successor node
-            Node successorCopy = new Node(successor.name, successor.tcpClient);
-            // Find out which side the successor parent is pointing to the
-            // successor and remove the successor
-            if (parent.left == successor)
-                parent.left = null;
+            // Both children have children, 
+            Node child = LocateChild(nodeToDelete, ref parent);
+           
+            Node childCopy = new Node(child.name, child.tcpClient);
+            // Find out which side the child parent is pointing to the
+            // child and remove the child
+            if (parent.left == child)
+            { parent.left = null; }
             else
-                parent.right = null;
+            { parent.right = null; }
 
-            // Copy over the successor values to the deleted node position
-            nodeToDelete.name = successorCopy.name;
-            nodeToDelete.tcpClient = successorCopy.tcpClient;
+            // move child into deleted node position
+            nodeToDelete.name = childCopy.name;
+            nodeToDelete.tcpClient = childCopy.tcpClient;
             _count--;
         }
         public IEnumerator GetEnumerator()
