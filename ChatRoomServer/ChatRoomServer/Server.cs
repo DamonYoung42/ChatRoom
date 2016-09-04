@@ -20,10 +20,10 @@ namespace ChatRoomServer
 
         public void RunServer()
         {
-
+            TcpListener serverSocket = null;
             try
             {
-                TcpListener serverSocket = new TcpListener(IPAddress.Any, 10000);
+                serverSocket = new TcpListener(IPAddress.Any, 10000);
                 serverSocket.Start();
                 WriteMessageToServer("Chat Server Initiated ...");
                 //Console.WriteLine("Chat Server Initiated ....");
@@ -46,6 +46,10 @@ namespace ChatRoomServer
             }
             finally
             {
+                if (serverSocket != null)
+                {
+                    serverSocket.Stop();
+                }
                 WriteMessageToServer("Chat Server is shutting down.");
                 //Console.WriteLine("Chat Server is shutting down.");
                 Broadcast("System", "Chat Server shutting down.");
@@ -257,10 +261,21 @@ namespace ChatRoomServer
             //send hello message to client
             bytesSent = Encoding.ASCII.GetBytes("Hello, " + userName);
             networkStream.Write(bytesSent, 0, bytesSent.Length);
+            DisplayCurrentUsers(networkStream);
 
             //send new user message to all clients
             Broadcast(userName, userName + " has joined the chat room.");
 
+        }
+
+        private static void DisplayCurrentUsers(NetworkStream networkStream)
+        {
+            string message = "Users currently online include: ";
+            byte[] bytesSent = new byte[4096];
+
+            message += string.Format("{0}", string.Join(",", chatUsers.Keys));
+            bytesSent = Encoding.ASCII.GetBytes(message);
+            networkStream.Write(bytesSent, 0, bytesSent.Length);
         }
     }
 

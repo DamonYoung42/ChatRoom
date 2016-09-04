@@ -38,17 +38,18 @@ namespace ChatRoomServer
 
                     userInput = Encoding.ASCII.GetString(bytesFrom);
 
-                    userInput = userInput.Substring(0, userInput.IndexOf("\0"));                               
+                    userInput = userInput.Substring(0, userInput.IndexOf("\0"));
 
                     if (userInput.ToLower() == "exit")
                     {
-                        userInput = userName + " has left the chat room.";
-                        Server.userTree.Delete(userName);
-                        Server.chatUsers.Remove(userName);
-                        Server.WriteMessageToServer(userInput);
-                        //Console.WriteLine(userInput);
-                        Server.messageQueue.Enqueue(userInput);
-                        Server.Broadcast(userName, userInput);
+                        ProcessExitingClient(userName);
+                        //userInput = userName + " has left the chat room.";
+                        //Server.userTree.Delete(userName);
+                        //Server.chatUsers.Remove(userName);
+                        //Server.WriteMessageToServer(userInput);
+                        ////Console.WriteLine(userInput);
+                        //Server.messageQueue.Enqueue(userInput);
+                        //Server.Broadcast(userName, userInput);
                         break;
                     }
                     else
@@ -69,8 +70,24 @@ namespace ChatRoomServer
                 Server.WriteMessageToServer(error.ToString());
                 //Console.WriteLine(error);
             }
+            finally { 
+                if (clientSocket != null)
+                {
+                    clientSocket.Close();
+                }                   
+            }
         }
 
+        private void ProcessExitingClient(string userName)
+        {
+            string message = userName + " has left the chat room.";
+            Server.userTree.Delete(userName);
+            Server.chatUsers.Remove(userName);
+            Server.WriteMessageToServer(message);
+            //Console.WriteLine(userInput);
+            Server.messageQueue.Enqueue(message);
+            Server.Broadcast(userName, message);
+        }
         
     }
 }

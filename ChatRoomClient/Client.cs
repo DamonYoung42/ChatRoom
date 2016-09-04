@@ -89,7 +89,6 @@ namespace ChatRoomClient
             {
                 DisplayMessage("A problem with your connection to the server has been detected. You must restart the client application.");
                 //Console.WriteLine("A problem with your connection to the server has been detected. You must restart the client application.");
-                Console.ReadLine();
                 
             }       
         }
