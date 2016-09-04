@@ -6,10 +6,6 @@ using System.Threading;
 using System.Net.Sockets;
 using System.Net;
 using System.IO;
-using Chat = System.Net;
-
-
-
 
 namespace ChatRoomClient
 {
@@ -48,14 +44,13 @@ namespace ChatRoomClient
                     {
                         Environment.Exit(0);
                     }
-
-
                 }
             }
             catch (Exception)
             {
-                Console.WriteLine("You are currently unable to establish a connection to the server.");
-                Console.WriteLine("Please exit and restart client after confirming your chat server is running.");
+                DisplayMessage("You are currently unable to establish a connection to the server.\nPlease exit and restart client after confirming your chat server is running.");
+                //Console.WriteLine("You are currently unable to establish a connection to the server.");
+                //Console.WriteLine("Please exit and restart client after confirming your chat server is running.");
                 Console.ReadLine();
 
 
@@ -65,6 +60,11 @@ namespace ChatRoomClient
                 if (clientStream != null)
                 {
                     clientStream.Close();
+                }
+
+                if (serverStream != null)
+                {
+                    serverStream.Close();
                 }
             }
         }
@@ -81,14 +81,22 @@ namespace ChatRoomClient
                     serverStream.Read(bytesFrom, 0, bytesFrom.Length);
                     string message = Encoding.ASCII.GetString(bytesFrom);
                     message = message.Substring(0, message.IndexOf("\0"));
-                    Console.WriteLine(message);
+                    DisplayMessage(message);
+                    //Console.WriteLine(message);
                 }
             }
             catch (Exception)
             {
-                Console.WriteLine("A problem with your connection to the server has been detected. You must restart the client application.");
+                DisplayMessage("A problem with your connection to the server has been detected. You must restart the client application.");
+                //Console.WriteLine("A problem with your connection to the server has been detected. You must restart the client application.");
+                Console.ReadLine();
                 
             }       
+        }
+
+        private static void DisplayMessage(string message)
+        {
+            Console.WriteLine(message);
         }
 
     }

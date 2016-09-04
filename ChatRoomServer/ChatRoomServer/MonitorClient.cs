@@ -43,19 +43,21 @@ namespace ChatRoomServer
                     if (userInput.ToLower() == "exit")
                     {
                         userInput = userName + " has left the chat room.";
-                        Server.userTree.Delete(this.userName);
-                        Server.chatUsers.Remove(this.userName);
-                        Console.WriteLine(userInput);
+                        Server.userTree.Delete(userName);
+                        Server.chatUsers.Remove(userName);
+                        Server.WriteMessageToServer(userInput);
+                        //Console.WriteLine(userInput);
                         Server.messageQueue.Enqueue(userInput);
-                        Server.Broadcast(this.userName, userInput);
+                        Server.Broadcast(userName, userInput);
                         break;
                     }
                     else
                     {
-                        userInput = "<" + this.userName + ">" + userInput;
-                        Console.WriteLine(userInput);
+                        userInput = "<" + userName + ">" + userInput;
+                        //Console.WriteLine(userInput);
+                        Server.WriteMessageToServer(userInput);
                         Server.messageQueue.Enqueue(userInput);
-                        Server.Broadcast(this.userName, userInput);
+                        Server.Broadcast(userName, userInput);
                     }
                 
                 }
@@ -64,7 +66,8 @@ namespace ChatRoomServer
                         
             catch (Exception error)
             {
-                Console.WriteLine(error);
+                Server.WriteMessageToServer(error.ToString());
+                //Console.WriteLine(error);
             }
         }
 

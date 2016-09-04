@@ -20,37 +20,34 @@ namespace ChatRoomServer
 
         public void RunServer()
         {
-            
+
             try
-            {     
+            {
                 TcpListener serverSocket = new TcpListener(IPAddress.Any, 10000);
-                //TcpClient clientSocket = default(TcpClient);
-
                 serverSocket.Start();
-                Console.WriteLine("Chat Server Initiated ....");
-
+                WriteMessageToServer("Chat Server Initiated ...");
+                //Console.WriteLine("Chat Server Initiated ....");
 
                 Thread monitorConnections = new Thread(MonitorConnections);
                 monitorConnections.Start();
                 while (true)
                 {
-
                     //Thread broadcastMessages = new Thread(() => BroadcastMessageQueue());
                     //broadcastMessages.Start();
                     TcpClient clientSocket = serverSocket.AcceptTcpClient();
                     Thread clientThread = new Thread(() => InitializeClient(clientSocket));
                     clientThread.Start();
-
-
                 }
             }
             catch (Exception error)
             {
-                Console.WriteLine(error);
+                WriteMessageToServer(error.ToString());
+                //Console.WriteLine(error);
             }
             finally
             {
-                Console.WriteLine("Chat Server is shutting down.");
+                WriteMessageToServer("Chat Server is shutting down.");
+                //Console.WriteLine("Chat Server is shutting down.");
                 Broadcast("System", "Chat Server shutting down.");
                 Console.ReadLine();
             }
@@ -61,44 +58,59 @@ namespace ChatRoomServer
         {
             try
             {
-                byte[] bytesFrom = new byte[4096];
                 byte[] bytesSent = new byte[4096];
-                string userInput = "";
+                string userName = "";
                 NetworkStream networkStream = clientSocket.GetStream();
                 bytesSent = Encoding.ASCII.GetBytes("Welcome to the Chat Server.\nYour first message will be used as your name.\nEnter 'exit' to close the application.");
                 networkStream.Write(bytesSent, 0, bytesSent.Length);
-                networkStream.Read(bytesFrom, 0, bytesFrom.Length);
-                userInput = Encoding.ASCII.GetString(bytesFrom);
-                userInput = userInput.Substring(0, userInput.IndexOf("\0"));
-                if (userInput != "exit")
-                {
-                    while (chatUsers.ContainsKey(userInput))
-                    {
-                        bytesSent = Encoding.ASCII.GetBytes("Someone with that name is already logged on. Please enter a different name.");
-                        networkStream.Write(bytesSent, 0, bytesSent.Length);
-                        networkStream.Read(bytesFrom, 0, bytesFrom.Length);
-                        userInput = Encoding.ASCII.GetString(bytesFrom);
-                        userInput = userInput.Substring(0, userInput.IndexOf("\0"));
-                    }
+                //Get User Name
+                userName = GetUserName(networkStream);
+                //
+                //networkStream.Read(bytesFrom, 0, bytesFrom.Length);
+                //userInput = Encoding.ASCII.GetString(bytesFrom);
+                //userInput = userInput.Substring(0, userInput.IndexOf("\0"));
+                //if (userInput != "exit")
+                //{
+                //    while (chatUsers.ContainsKey(userInput))
+                //    {
+                //        bytesSent = Encoding.ASCII.GetBytes("Someone with that name is already logged on. Please enter a different name.");
+                //        networkStream.Write(bytesSent, 0, bytesSent.Length);
+                //        networkStream.Read(bytesFrom, 0, bytesFrom.Length);
+                //        userInput = Encoding.ASCII.GetString(bytesFrom);
+                //        userInput = userInput.Substring(0, userInput.IndexOf("\0"));
+                //    }
+
+                    //start monitoring client for messages
                     MonitorClient client = new MonitorClient();
-                    client.startClient(clientSocket, userInput);
-                    userTree.Insert(userInput, clientSocket);
-                    chatUsers.Add(userInput, clientSocket);
+                    client.startClient(clientSocket, userName);
 
-                    Console.WriteLine(userInput + " has joined the chat room. ");
+                    //add new client to binary tree and dictionary
+                    userTree.Insert(userName, clientSocket);
+                    chatUsers.Add(userName, clientSocket);
 
-                    bytesSent = Encoding.ASCII.GetBytes("Hello, " + userInput);
-                    networkStream.Write(bytesSent, 0, bytesSent.Length);
-                    messageQueue.Enqueue(userInput + " has joined the chat room.");
-                    Broadcast(userInput, userInput + " has joined the chat room.");
-                }
+                    //Welcome new user to chatroom
+                    SendWelcomeMessage(userName, networkStream);
+                //    //Write message to server
+                //    WriteMessageToServer(userName + " has joined the chat room.");
+                //    //Console.WriteLine(userName + " has joined the chat room. ");
+
+                //    //send hello message to client
+                //    bytesSent = Encoding.ASCII.GetBytes("Hello, " + userName);
+                //    networkStream.Write(bytesSent, 0, bytesSent.Length);
+
+                //    //send new user message to all clients
+                //    messageQueue.Enqueue(userName + " has joined the chat room.");
+                //    Broadcast(userName, messageQueue.Dequeue());
+                //    //Broadcast(userName, userName + " has joined the chat room.");
+                ////}
 
 
                 //BroadcastMessageQueue();}
             }
             catch (Exception error)
             {
-                Console.WriteLine(error);
+                WriteMessageToServer(error.ToString());
+                //Console.WriteLine(error);
             }
 
         }
@@ -119,7 +131,7 @@ namespace ChatRoomServer
                     }
 
                 }
-
+                //send message through binary tree
                 //foreach (Node node in userTree)
                 //{
                 //    if (userName != node.name)
@@ -135,7 +147,8 @@ namespace ChatRoomServer
             }
             catch (Exception error)
             {
-                Console.WriteLine(error);
+                WriteMessageToServer(error.ToString());
+                //Console.WriteLine(error);
             }
 
         }
@@ -162,14 +175,12 @@ namespace ChatRoomServer
         {
             while (true)
             {
-
-
                 try
                 {
                     if (userTree.Count() > 0)
                     {
                         foreach (Node node in userTree)
-                        {
+                       {
                             if (!node.tcpClient.Connected)
                             {
                                 // string name = node.name;
@@ -201,14 +212,57 @@ namespace ChatRoomServer
                 }
                 catch (Exception error)
                 {
-                    Console.WriteLine(error);
+                    WriteMessageToServer(error.ToString());
+                    //Console.WriteLine(error);
                 }
             }
 
         }
+
+        private string GetUserName(NetworkStream networkStream)
+        {
+            byte[] bytesFrom = new byte[4096];
+            byte[] bytesSent = new byte[4096];
+            networkStream.Read(bytesFrom, 0, bytesFrom.Length);
+            string userName = Encoding.ASCII.GetString(bytesFrom);
+            userName = userName.Substring(0, userName.IndexOf("\0"));
+            if (userName != "exit")
+            {
+                while (chatUsers.ContainsKey(userName))
+                {
+                    bytesSent = Encoding.ASCII.GetBytes("Someone with that name is already logged on. Please enter a different name.");
+                    networkStream.Write(bytesSent, 0, bytesSent.Length);
+                    networkStream.Read(bytesFrom, 0, bytesFrom.Length);
+                    userName = Encoding.ASCII.GetString(bytesFrom);
+                    userName = userName.Substring(0, userName.IndexOf("\0"));
+                }
+
+            }
+            return userName;
+        }
+
+        public static void WriteMessageToServer(string message)
+        {
+            Console.WriteLine(message);
+        }
+
+        private static void SendWelcomeMessage(string userName, NetworkStream networkStream)
+        {
+            byte[] bytesSent = new byte[4096];
+            
+            //Write message to server
+            WriteMessageToServer(userName + " has joined the chat room.");
+            //Console.WriteLine(userName + " has joined the chat room. ");
+
+            //send hello message to client
+            bytesSent = Encoding.ASCII.GetBytes("Hello, " + userName);
+            networkStream.Write(bytesSent, 0, bytesSent.Length);
+
+            //send new user message to all clients
+            Broadcast(userName, userName + " has joined the chat room.");
+
+        }
     }
-
-
 
 }
 
