@@ -64,17 +64,21 @@ namespace ChatRoomServer
                 networkStream.Write(bytesSent, 0, bytesSent.Length);
 
                 userName = GetUserName(networkStream);
+                if (userName != "exit")
+                {                
+                    //start monitoring client for messages
+                    MonitorClient client = new MonitorClient();
+                    client.startClient(clientSocket, userName);
 
-                //start monitoring client for messages
-                MonitorClient client = new MonitorClient();
-                client.startClient(clientSocket, userName);
+                    //add new client to binary tree and dictionary
+                    userTree.Insert(userName, clientSocket);
+                    chatUsers.Add(userName, clientSocket);
 
-                //add new client to binary tree and dictionary
-                userTree.Insert(userName, clientSocket);
-                chatUsers.Add(userName, clientSocket);
+                    //Welcome new user to chatroom
+                    SendWelcomeMessage(userName, networkStream);
 
-                //Welcome new user to chatroom
-                SendWelcomeMessage(userName, networkStream);
+                }
+
             }
             catch (Exception error)
             {
@@ -120,7 +124,7 @@ namespace ChatRoomServer
 
         }
 
-        public void BroadcastMessageQueue()
+        public static void BroadcastMessageQueue(string userName)
         {
             while (messageQueue.Count > 0)
             {
@@ -128,9 +132,13 @@ namespace ChatRoomServer
 
                 foreach (KeyValuePair<string, TcpClient> user in chatUsers)
                 {
-                    NetworkStream broadcast = user.Value.GetStream();
-                    broadcast.Write(bytesOut, 0, bytesOut.Length);
-                    broadcast.Flush();
+                    if (user.Key != userName)
+                    {
+                        NetworkStream broadcast = user.Value.GetStream();
+                        broadcast.Write(bytesOut, 0, bytesOut.Length);
+                        broadcast.Flush();
+                    }
+
                 }
             }
         }
@@ -151,7 +159,9 @@ namespace ChatRoomServer
                                 {
                                     chatUsers.Remove(node.name);
                                 }
-                                Broadcast("Server", node.name + " has been disconnected.");
+                                //Broadcast("Server", node.name + " has been disconnected.");
+                                messageQueue.Enqueue(node.name + " has been disconnected.");
+                                BroadcastMessageQueue(node.name);
                             }
                         }
 
@@ -227,7 +237,9 @@ namespace ChatRoomServer
             DisplayCurrentUsers(networkStream);
 
             //send new user message to all clients
-            Broadcast(userName, userName + " has joined the chat room.");
+            messageQueue.Enqueue(userName + " has joined the chat room.");
+            //Broadcast(userName, userName + " has joined the chat room.");
+            BroadcastMessageQueue(userName);
 
         }
 

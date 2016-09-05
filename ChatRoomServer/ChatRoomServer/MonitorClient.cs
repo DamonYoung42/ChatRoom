@@ -47,7 +47,8 @@ namespace ChatRoomServer
                         userInput = "<" + userName + ">" + userInput;
                         Server.WriteMessageToServer(userInput);
                         Server.messageQueue.Enqueue(userInput);
-                        Server.Broadcast(userName, userInput);
+                        Server.BroadcastMessageQueue(userName);
+                        //Server.Broadcast(userName, userInput);
                     }
                 
                 }
