@@ -149,16 +149,14 @@ namespace ChatRoomServer
             { 
                 try
                 {
-                    if (userTree.Count() > 1)
+                    if (userTree.Count() > 0)
                     {
                         foreach (Node node in userTree)
                        {
                             if (!node.tcpClient.Connected)
                             {
-                                lock (chatUsers)
-                                {
-                                    chatUsers.Remove(node.name);
-                                }
+                                chatUsers.Remove(node.name);
+                                
                                 //Broadcast("Server", node.name + " has been disconnected.");
                                 messageQueue.Enqueue(node.name + " has been disconnected.");
                                 BroadcastMessageQueue(node.name);
@@ -168,13 +166,11 @@ namespace ChatRoomServer
                     }
                     userTree = new BinaryTree();
 
-                    lock (chatUsers)
+                    foreach (KeyValuePair<string, TcpClient> user in chatUsers)
                     {
-                        foreach (KeyValuePair<string, TcpClient> user in chatUsers)
-                        {
-                            userTree.Insert(user.Key, user.Value);
-                        }
+                        userTree.Insert(user.Key, user.Value);
                     }
+                    
                     //foreach (KeyValuePair<string, TcpClient> user in chatUsers)
                     //{
                     //    if (!user.Value.Connected)

@@ -71,18 +71,14 @@ namespace ChatRoomServer
         private void ProcessExitingClient(string userName)
         {
             string message = userName + " has left the chat room.";
-            lock (Server.userTree)
-            {
-                Server.userTree.Delete(userName);
-            }
-            lock (Server.chatUsers)
-            {
-                Server.chatUsers.Remove(userName);
-            }
 
+            Server.userTree.Delete(userName);     
+            Server.chatUsers.Remove(userName);
+            
             Server.WriteMessageToServer(message);
             Server.messageQueue.Enqueue(message);
-            Server.Broadcast(userName, message);
+            Server.BroadcastMessageQueue(userName);
+            //Server.Broadcast(userName, message);
         }
         
     }
