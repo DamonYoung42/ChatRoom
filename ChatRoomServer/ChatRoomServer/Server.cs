@@ -146,7 +146,7 @@ namespace ChatRoomServer
         private void MonitorConnections()
         {
             while (true)
-            {
+            { 
                 try
                 {
                     if (userTree.Count() > 1)
