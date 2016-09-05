@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Net.Sockets;
-using System.Net;
 using System.Collections;
 
 namespace ChatRoomServer
@@ -33,12 +28,18 @@ namespace ChatRoomServer
             while (searchNode != null)
             {
                 if (String.Compare(name, searchNode.name) == 0)
-                { return searchNode; }
+                {
+                    return searchNode;
+                }
 
                 if (String.Compare(name, searchNode.name) < 0)
-                { searchNode = searchNode.left; }
+                {
+                    searchNode = searchNode.left;
+                }
                 else
-                { searchNode = searchNode.right; }
+                {
+                    searchNode = searchNode.right;
+                }
             }
             return null;
         }
@@ -194,12 +195,15 @@ namespace ChatRoomServer
             Node child = LocateChild(nodeToDelete, ref parent);
            
             Node childCopy = new Node(child.name, child.tcpClient);
-            // Find out which side the child parent is pointing to the
-            // child and remove the child
+            // Find out which side the child parent is pointing to the child and remove the child
             if (parent.left == child)
-            { parent.left = null; }
+            {
+                parent.left = null;
+            }
             else
-            { parent.right = null; }
+            {
+                parent.right = null;
+            }
 
             // move child into deleted node position
             nodeToDelete.name = childCopy.name;

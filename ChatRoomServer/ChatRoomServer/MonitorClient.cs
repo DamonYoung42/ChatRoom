@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Net;
 using System.Net.Sockets;
-using System.IO;
+
 
 namespace ChatRoomServer
 {
@@ -43,19 +40,11 @@ namespace ChatRoomServer
                     if (userInput.ToLower() == "exit")
                     {
                         ProcessExitingClient(userName);
-                        //userInput = userName + " has left the chat room.";
-                        //Server.userTree.Delete(userName);
-                        //Server.chatUsers.Remove(userName);
-                        //Server.WriteMessageToServer(userInput);
-                        ////Console.WriteLine(userInput);
-                        //Server.messageQueue.Enqueue(userInput);
-                        //Server.Broadcast(userName, userInput);
                         break;
                     }
                     else
                     {
                         userInput = "<" + userName + ">" + userInput;
-                        //Console.WriteLine(userInput);
                         Server.WriteMessageToServer(userInput);
                         Server.messageQueue.Enqueue(userInput);
                         Server.Broadcast(userName, userInput);
@@ -68,23 +57,29 @@ namespace ChatRoomServer
             catch (Exception error)
             {
                 Server.WriteMessageToServer(error.ToString());
-                //Console.WriteLine(error);
             }
             finally { 
                 if (clientSocket != null)
                 {
                     clientSocket.Close();
-                }                   
+                }     
+        
             }
         }
 
         private void ProcessExitingClient(string userName)
         {
             string message = userName + " has left the chat room.";
-            Server.userTree.Delete(userName);
-            Server.chatUsers.Remove(userName);
+            lock (Server.userTree)
+            {
+                Server.userTree.Delete(userName);
+            }
+            lock (Server.chatUsers)
+            {
+                Server.chatUsers.Remove(userName);
+            }
+
             Server.WriteMessageToServer(message);
-            //Console.WriteLine(userInput);
             Server.messageQueue.Enqueue(message);
             Server.Broadcast(userName, message);
         }

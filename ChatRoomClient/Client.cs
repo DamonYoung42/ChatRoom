@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Net.Sockets;
-using System.Net;
-using System.IO;
+
 
 namespace ChatRoomClient
 {
@@ -19,15 +16,7 @@ namespace ChatRoomClient
         {
             try
             {
-                //Console.WriteLine("Please enter your name before connecting to the Chat Server.");
-                //string userName = Console.ReadLine();
-
                 clientStream.Connect("localhost", 10000);
-                //Console.WriteLine("Connected to Chat Server ...");
-                //byte[] outStream = System.Text.Encoding.ASCII.GetBytes(userName);
-                //serverStream = clientStream.GetStream();
-                //serverStream.Write(outStream, 0, outStream.Length);
-                //serverStream.Flush();
 
                 while (clientStream.Connected)
                 {
@@ -49,8 +38,6 @@ namespace ChatRoomClient
             catch (Exception)
             {
                 DisplayMessage("You are currently unable to establish a connection to the server.\nPlease exit and restart client after confirming your chat server is running.");
-                //Console.WriteLine("You are currently unable to establish a connection to the server.");
-                //Console.WriteLine("Please exit and restart client after confirming your chat server is running.");
                 Console.ReadLine();
 
 
@@ -82,13 +69,11 @@ namespace ChatRoomClient
                     string message = Encoding.ASCII.GetString(bytesFrom);
                     message = message.Substring(0, message.IndexOf("\0"));
                     DisplayMessage(message);
-                    //Console.WriteLine(message);
                 }
             }
             catch (Exception)
             {
                 DisplayMessage("A problem with your connection to the server has been detected. You must restart the client application.");
-                //Console.WriteLine("A problem with your connection to the server has been detected. You must restart the client application.");
                 
             }       
         }
